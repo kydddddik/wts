@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calendario de Adviento</title>
+    <!-- Link para Google Fonts (Pacifico y Kalam) -->
+    <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Kalam:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-image: url('https://i.ibb.co/49ZZG4R/94-sin-t-tulo-20251119001005.png'); /* Imagen móvil por defecto */
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            height: 100vh;
+            font-family: 'Kalam', cursive; /* Fuente handwriting para textos generales */
+            color: white;
+            display: flex;
+            justify-content: center; /* Centrado por defecto (móvil) */
+            align-items: center;
+            overflow: hidden;
+        }
+        .calendar {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr); /* 5 columnas para 20 recuadros */
+            gap: 6px;
+            max-width: 500px;
+            width: 80%;
+            padding: 40px;
+            margin-top: -250px;
+        }
+        .day {
+            width: 60px; /* Recuadros más pequeños */
+            height: 50px;
+            background-color: rgba(255, 255, 255, 0.8);
+            border: 2px solid #AAA39C;
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 15px; /* Ajusta el tamaño de fuente para que quepa */
+            font-weight: bold;
+            font-family: 'Pacifico', cursive; /* Fuente cursiva solo para números */
+            font-style: italic; /* Mantiene cursiva */
+            cursor: pointer;
+            transition: background-color 0.3s;
+            color: #9DB7BA;
+        }
+        .day.locked {
+            background-color: rgba(0, 0, 0, 0.5);
+            color: #5C452C;
+            cursor: not-allowed;
+        }
+        .day:hover:not(.locked) {
+            background-color: rgba(255, 255, 255, 1);
+        }
+        .snow {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none; 
+            z-index: 3; 
+        }
+        .snowflake {
+            position: absolute;
+            background-color: #D0CAC5;
+            opacity: 0.5; 
+            border-radius: 50%;
+            animation: fall linear infinite;
+        }
+        @keyframes fall {
+            0% {
+                transform: translateY(-10px) rotate(0deg);
+            }
+            100% {
+                transform: translateY(100vh) rotate(360deg);
+            }
+        }
+        /* Estilos para el modal */
+        .modal {
+            display: none; /* Oculto por defecto */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+        }
+        .modal-content {
+            background-color: transparent; /* Fondo transparente para ver la imagen PNG con transparencia */
+            padding: 20px;
+            border-radius: 10px;
+            max-width: 90%;
+            max-height: 90%;
+            text-align: center;
+            position: relative;
+            overflow: auto;
+        }
+        .modal img {
+            width: auto;
+            height: auto;
+            max-width: 100%;
+            max-height: 80vh;
+            margin-bottom: 10px;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+        }
+        .modal-text {
+            position: absolute;
+            top: 300px; /* Ajusta la posición vertical sobre la imagen */
+            left: 50%;
+            transform: translateX(-50%) rotate(-6deg); /* Centrado horizontal y ligera inclinación a la derecha */
+            font-size: 12px; /* Tamaño pequeño */
+            color: #6A5C4E; /* Blanco para contraste */
+            font-weight: bold;
+            font-family: 'Kalam', cursive; /* Fuente handwriting para el texto del modal */
+            text-shadow: 0px 0px 0px rgba(0, 0, 0, 0.0); /* Sombra para legibilidad */
+            z-index: 11; /* Sobre la imagen */
+        }
+        .close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 20px;
+            cursor: pointer;
+            color: #fff; /* Blanco para contraste sobre fondo oscuro */
+        }
+        /* Audio oculto para el día 20 */
+        #backgroundAudio {
+            display: none; /* Oculto */
+        }
+
+        /* Media query para escritorio (pantallas >= 768px en landscape o >= 1024px) */
+        @media (min-width: 768px) and (orientation: landscape), (min-width: 1024px) {
+            body {
+                background-image: url('https://i.ibb.co/pvQbZx1Q/96-sin-t-tulo-20251123024614.png'); /* Nueva imagen para escritorio */
+                justify-content: flex-start; /* Calendario al costado izquierdo */
+                padding-left: 3%; /* Espacio desde la izquierda */
+            }
+            .calendar {
+                max-width: 200px; /* Más grande para escritorio */
+                width: 20%;
+                gap: 4px; /* Gap un poco mayor */
+                padding: 20px; /* Padding mayor */
+                margin-top: -100px; /* Ajuste vertical */
+                margin-left: 0; /* Sin margen izquierdo extra */
+            }
+            .day {
+                width: 80px; /* Recuadros más grandes */
+                height: 60px;
+                font-size: 18px; /* Fuente más grande */
+            }
+            .snowflake {
+                opacity: 0.3; /* Nieve más sutil en escritorio */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="snow" id="snow"></div>
+
+    <div class="calendar" id="calendar">
+    </div>
+
+    <!-- Modal para mostrar la imagen -->
+    <div class="modal" id="modal">
+        <div class="modal-content">
+            <span class="close" id="closeModal">&times;</span>
+            <div class="modal-text">texto texto texto de prueba</div> <!-- Texto sobre la imagen -->
+            <img id="modalImage" src="" alt="Imagen del día">
+            <!-- Audio oculto para el día 20 -->
+            <audio id="backgroundAudio" autoplay loop>
+                <source src="https://raw.githubusercontent.com/kydddddik/wts/main/DAY6%20(%EB%8D%B0%EC%9D%B4%EC%8B%9D%EC%8A%A4)%20'Welcome%20to%20the%20Show'%20Official%20Audio.mp3" type="audio/mpeg">
+                Tu navegador no soporta el elemento audio.
+            </audio>
+        </div>
+    </div>
+
+    <script>
+        function getChileTime() {
+            const now = new Date();
+            const chileOffset = -3;
+            const chileTime = new Date(now.getTime() + (chileOffset * 60 * 60 * 1000));
+            return chileTime;
+        }
+
+        // Fecha de inicio del calendario (cambiada a 1 de noviembre de 2025)
+        const startDate = new Date('2025-11-01T00:00:00'); // Medianoche del 1 de noviembre en UTC, ajustada para zona horaria de Chile.
+
+        // URL de la imagen (PNG con fondo transparente)
+        const imageUrl = 'https://i.ibb.co/hxZmZMs9/note.png';
+
+        // Generar los 20 días
+        const calendar = document.getElementById('calendar');
+        for (let i = 1; i <= 20; i++) {
+            const dayElement = document.createElement('div');
+            dayElement.classList.add('day');
+            dayElement.textContent = i;
+
+            // Calcular si el día está desbloqueado
+            const unlockDate = new Date(startDate.getTime() + (i - 1) * 24 * 60 * 60 * 1000); // Cada 24 horas desde el inicio
+            const chileNow = getChileTime();
+
+            if (chileNow >= unlockDate) {
+                dayElement.addEventListener('click', () => {
+                    // Mostrar modal con imagen
+                    document.getElementById('modalImage').src = imageUrl;
+                    document.getElementById('modal').style.display = 'flex';
+
+                    // Audio únicamente para el día 20
+                    if (i === 20) {
+                        const audio = document.getElementById('backgroundAudio');
+                        audio.play().catch(e => console.log('Autoplay bloqueado:', e)); // Intenta reproducir solo en día 20
+                    } else {
+                        // Asegurar que no suene en otros días
+                        document.getElementById('backgroundAudio').pause();
+                        document.getElementById('backgroundAudio').currentTime = 0;
+                    }
+                });
+            } else {
+                dayElement.classList.add('locked');
+                dayElement.addEventListener('click', () => {
+                    alert('Este día aún no está disponible. Vuelve mañana en zona horaria de Chile.');
+                });
+            }
+
+            calendar.appendChild(dayElement);
+        }
+
+        // Cerrar modal
+        document.getElementById('closeModal').addEventListener('click', () => {
+            document.getElementById('modal').style.display = 'none';
+            document.getElementById('backgroundAudio').pause(); // Pausar audio al cerrar
+            document.getElementById('backgroundAudio').currentTime = 0; // Reiniciar
+        });
+        document.getElementById('modal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('modal')) {
+                document.getElementById('modal').style.display = 'none';
+                document.getElementById('backgroundAudio').pause(); // Pausar audio al cerrar
+                document.getElementById('backgroundAudio').currentTime = 0; // Reiniciar
+            }
+        });
+
+        // Generar nieve
+        const snowContainer = document.getElementById('snow');
+        const snowflakeCount = 50; // Número de copos (ajusta para más/menos densidad)
+        for (let i = 0; i < snowflakeCount; i++) {
+            const snowflake = document.createElement('div');
+            snowflake.classList.add('snowflake');
+            snowflake.style.left = Math.random() * 100 + '%'; // Posición horizontal aleatoria
+            snowflake.style.width = Math.random() * 5 + 2 + 'px'; // Tamaño aleatorio (2-7px)
+            snowflake.style.height = snowflake.style.width; // Cuadrado para simular copo
+            snowflake.style.animationDuration = Math.random() * 10 + 10 + 's'; // Duración aleatoria (10-20s para lentitud)
+            snowflake.style.animationDelay = Math.random() * 10 + 's'; // Retraso aleatorio
+            snowContainer.appendChild(snowflake);
+        }
+    </script>
+</body>
+</html>
